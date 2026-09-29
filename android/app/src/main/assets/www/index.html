@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Image Utility Toolbox</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- TOP STUDIO APP BAR -->
+    <header class="top-bar">
+        <div class="brand">
+            <span style="color: var(--primary);">✦</span>
+            <span data-i18n="app_title">Image Utility Toolbox</span>
+            <span class="brand-badge">STUDIO</span>
+        </div>
+
+        <div class="top-actions">
+            <!-- Dropdown Menu Button -->
+            <button class="btn-icon" id="btn-menu" title="Menu">☰</button>
+            <!-- Open Photo Button -->
+            <button class="btn-icon" id="btn-open-quick" title="Görsel Aç">📂</button>
+            <!-- Split Mode Button -->
+            <button class="btn-icon" id="btn-split-toggle" title="Karşılaştır">◧</button>
+            <!-- Share Button -->
+            <button class="btn-icon" id="btn-share-quick" title="Paylaş">📤</button>
+            <!-- Save Button -->
+            <button class="btn-action" id="btn-save-quick">
+                <span>💾</span>
+                <span data-i18n="btn_save">Kaydet</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- NOTIFICATION BADGE -->
+    <div class="notification-banner" id="notification-banner">
+        <span id="notif-icon">✓</span>
+        <span id="notif-text">Hazır</span>
+    </div>
+
+    <!-- MAIN VIEWPORT & CANVAS -->
+    <main class="viewport-container" id="viewport">
+        <!-- Welcoming DropZone (shown when no image loaded) -->
+        <div class="dropzone" id="dropzone">
+            <div class="dropzone-icon">🖼</div>
+            <h3 data-i18n="drop_zone_title">Fotoğraf Seç veya Buraya Bırak</h3>
+            <p data-i18n="drop_zone_sub">PNG, JPG, WebP, BMP desteklenir</p>
+            <button class="btn-action" id="btn-open-hero">
+                <span>+</span>
+                <span data-i18n="btn_open_photo">Galeriden Fotoğraf Seç</span>
+            </button>
+        </div>
+
+        <!-- Interactive Canvas Wrapper -->
+        <div class="canvas-wrapper" id="canvas-wrapper" style="display: none;">
+            <canvas class="main-canvas" id="canvas-main"></canvas>
+            
+            <!-- Split View Overlay (Comparison Mode) -->
+            <div class="split-container" id="split-container" style="display: none;">
+                <canvas class="main-canvas" id="canvas-original"></canvas>
+                <div class="split-divider" id="split-divider">
+                    <div class="split-handle">◧</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Zoom Controls -->
+        <div class="zoom-controls" id="zoom-controls" style="display: none;">
+            <button class="zoom-btn" id="btn-zoom-out">−</button>
+            <span id="zoom-label">100%</span>
+            <button class="zoom-btn" id="btn-zoom-in">+</button>
+            <button class="zoom-btn" id="btn-zoom-fit" title="Fit">⛶</button>
+        </div>
+    </main>
+
+    <!-- BOTTOM STUDIO DRAWER -->
+    <section class="studio-drawer" id="studio-drawer">
+        <!-- Tab Bar Header -->
+        <div class="drawer-header">
+            <button class="tab-btn active" data-tab="tab-compress" data-i18n="tab_compress">Sıkıştırma</button>
+            <button class="tab-btn" data-tab="tab-adjust" data-i18n="tab_adjust">Ayarlar</button>
+            <button class="tab-btn" data-tab="tab-effects" data-i18n="tab_effects">Efektler</button>
+            <button class="tab-btn" data-tab="tab-watermark" data-i18n="tab_watermark">Filigran</button>
+            <button class="tab-btn" data-tab="tab-analysis" data-i18n="tab_analysis">Analiz</button>
+            <button class="tab-btn" data-tab="tab-batch" data-i18n="tab_batch">Toplu İşlem</button>
+        </div>
+
+        <!-- Drawer Content Tabs -->
+        <div class="drawer-content">
+
+            <!-- 1. COMPRESSOR TAB -->
+            <div class="tab-panel active" id="tab-compress">
+                <div class="control-group">
+                    <div class="control-title" data-i18n="target_size_label">Hedef Dosya Boyutu:</div>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="number" id="input-target-size" value="500" min="10" max="50000" style="flex: 1; background: var(--bg-hover); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 12px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600;">
+                        <select id="select-size-unit" style="background: var(--bg-hover); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600;">
+                            <option value="kb">KB</option>
+                            <option value="mb">MB</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-title" data-i18n="output_format_label">Çıktı Formatı:</div>
+                    <div class="btn-grid" id="compress-format-grid">
+                        <button class="btn-secondary active" data-fmt="webp">WebP</button>
+                        <button class="btn-secondary" data-fmt="jpeg">JPEG</button>
+                        <button class="btn-secondary" data-fmt="png">PNG</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer;">
+                        <input type="checkbox" id="check-fast-mode" style="accent-color: var(--primary);">
+                        <span data-i18n="fast_mode_check">Hızlı Arama Modu (Daha Az İterasyon)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer;">
+                        <input type="checkbox" id="check-downscale" checked style="accent-color: var(--primary);">
+                        <span data-i18n="fallback_downscale_check">Çözünürlük Düşürmeye İzin Ver (Lanczos)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer;">
+                        <input type="checkbox" id="check-strip-exif" checked style="accent-color: var(--primary);">
+                        <span data-i18n="strip_metadata_check">EXIF ve Metaveriyi Temizle</span>
+                    </label>
+                </div>
+
+                <button class="btn-action" id="btn-run-compress" style="justify-content: center; padding: 12px; font-size: 15px;">
+                    <span data-i18n="btn_run_compress">Hedef Boyut Sıkıştırmayı Çalıştır</span>
+                </button>
+
+                <!-- Compression Results Report -->
+                <div class="control-group" id="compress-report" style="display: none; background: #16161A;">
+                    <div class="control-title" style="color: var(--success);" data-i18n="compress_report_title">Sıkıştırma Sonuç Raporu</div>
+                    <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                        <span data-i18n="label_orig_size">Orijinal:</span>
+                        <span id="rep-orig-size" style="font-weight: 600;">-</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                        <span data-i18n="label_compressed_size">Sıkıştırılmış:</span>
+                        <span id="rep-comp-size" style="color: var(--success); font-weight: 700;">-</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                        <span data-i18n="label_savings">Tasarruf:</span>
+                        <span id="rep-savings" style="color: var(--success); font-weight: 700;">-</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                        <span data-i18n="label_iterations">İterasyon:</span>
+                        <span id="rep-iterations" style="font-weight: 600;">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. ADJUSTMENTS TAB -->
+            <div class="tab-panel" id="tab-adjust">
+                <!-- Geometry -->
+                <div class="control-group">
+                    <div class="control-title" data-i18n="group_geom">Boyutlandırma ve Kırpma</div>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="number" id="adjust-width" placeholder="Genişlik" style="flex: 1; background: var(--bg-hover); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px; border-radius: var(--radius-sm); font-size: 13px;">
+                        <input type="number" id="adjust-height" placeholder="Yükseklik" style="flex: 1; background: var(--bg-hover); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px; border-radius: var(--radius-sm); font-size: 13px;">
+                        <button class="btn-secondary" id="btn-apply-resize" style="padding: 8px 12px;" data-i18n="btn_apply">Uygula</button>
+                    </div>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted);">
+                        <input type="checkbox" id="check-preserve-ratio" checked style="accent-color: var(--primary);">
+                        <span data-i18n="check_lock_ratio">En-Boy Oranını Koru</span>
+                    </label>
+
+                    <div style="margin-top: 6px;">
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 6px;" data-i18n="label_crop_ratio">Kırpma Oranı:</div>
+                        <div class="btn-grid">
+                            <button class="btn-secondary" data-crop="1:1">1:1</button>
+                            <button class="btn-secondary" data-crop="16:9">16:9</button>
+                            <button class="btn-secondary" data-crop="4:3">4:3</button>
+                            <button class="btn-secondary" data-crop="9:16">9:16</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transform -->
+                <div class="control-group">
+                    <div class="control-title">Döndürme ve Aynalama</div>
+                    <div class="btn-grid">
+                        <button class="btn-secondary" id="btn-rot-left" data-i18n="btn_rot_left">90° Sola</button>
+                        <button class="btn-secondary" id="btn-rot-right" data-i18n="btn_rot_right">90° Sağa</button>
+                        <button class="btn-secondary" id="btn-rot-180" data-i18n="btn_rot_180">180° Çevir</button>
+                        <button class="btn-secondary" id="btn-flip-h" data-i18n="btn_flip_h">Yatay</button>
+                        <button class="btn-secondary" id="btn-flip-v" data-i18n="btn_flip_v">Dikey</button>
+                    </div>
+                </div>
+
+                <!-- Live Tone Sliders -->
+                <div class="control-group">
+                    <div class="control-title" data-i18n="group_tone">Pozlama ve Renk Ayarları</div>
+                    
+                    <div class="slider-row">
+                        <div class="slider-header">
+                            <span data-i18n="label_brightness">Parlaklık</span>
+                            <span class="slider-val" id="val-brightness">0</span>
+                        </div>
+                        <input type="range" id="slider-brightness" min="-100" max="100" value="0">
+                    </div>
+
+                    <div class="slider-row">
+                        <div class="slider-header">
+                            <span data-i18n="label_contrast">Kontrast</span>
+                            <span class="slider-val" id="val-contrast">0</span>
+                        </div>
+                        <input type="range" id="slider-contrast" min="-100" max="100" value="0">
+                    </div>
+
+                    <div class="slider-row">
+                        <div class="slider-header">
+                            <span data-i18n="label_temp">Renk Sıcaklığı (Kelvin)</span>
+                            <span class="slider-val" id="val-kelvin">6500K</span>
+                        </div>
+                        <input type="range" id="slider-kelvin" min="1500" max="15000" step="100" value="6500">
+                    </div>
+
+                    <div class="slider-row">
+                        <div class="slider-header">
+                            <span data-i18n="label_vibrance">Canlılık (Vibrance)</span>
+                            <span class="slider-val" id="val-vibrance">0</span>
+                        </div>
+                        <input type="range" id="slider-vibrance" min="-100" max="100" value="0">
+                    </div>
+
+                    <div style="display: flex; gap: 8px; margin-top: 6px;">
+                        <button class="btn-secondary" id="btn-reset-tone" style="flex: 1;" data-i18n="btn_reset_adjust">Sürgüleri Sıfırla</button>
+                        <button class="btn-action" id="btn-apply-tone" style="flex: 1; justify-content: center;" data-i18n="btn_apply_adjust">Ayarları Sabitle</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. EFFECTS TAB -->
+            <div class="tab-panel" id="tab-effects">
+                <div class="control-group">
+                    <div class="control-title" data-i18n="group_presets">Sanatsal Filtreler ve Efektler</div>
+                    <div class="btn-grid" id="effects-grid">
+                        <button class="btn-secondary active" data-effect="sepia" data-i18n="effect_sepia">Sepia</button>
+                        <button class="btn-secondary" data-effect="vintage" data-i18n="effect_vintage">Vintage</button>
+                        <button class="btn-secondary" data-effect="cyanotype" data-i18n="effect_cyanotype">Cyanotype</button>
+                        <button class="btn-secondary" data-effect="cyberpunk" data-i18n="effect_cyberpunk">Cyberpunk</button>
+                        <button class="btn-secondary" data-effect="vignette" data-i18n="effect_vignette">Vinyet</button>
+                        <button class="btn-secondary" data-effect="sharpness" data-i18n="effect_sharpness">Keskinleştir</button>
+                        <button class="btn-secondary" data-effect="blur" data-i18n="effect_blur">Bulanıklık</button>
+                        <button class="btn-secondary" data-effect="denoise" data-i18n="effect_denoise">Gürültü Gider</button>
+                        <button class="btn-secondary" data-effect="sketch" data-i18n="effect_sketch">Eskiz / Kenar</button>
+                        <button class="btn-secondary" data-effect="clahe" data-i18n="effect_clahe">CLAHE Kontrast</button>
+                        <button class="btn-secondary" data-effect="threshold" data-i18n="effect_threshold">Eşikleme</button>
+                        <button class="btn-secondary" data-effect="borders" data-i18n="effect_borders">Çerçeveler</button>
+                    </div>
+                </div>
+
+                <!-- Contextual Effect Parameters Panel -->
+                <div class="control-group" id="effect-params-panel">
+                    <div class="control-title" id="effect-param-title">Efekt Ayarları</div>
+                    
+                    <div class="slider-row" id="row-effect-param1">
+                        <div class="slider-header">
+                            <span id="label-effect-param1">Yoğunluk</span>
+                            <span class="slider-val" id="val-effect-param1">80%</span>
+                        </div>
+                        <input type="range" id="slider-effect-param1" min="0" max="100" value="80">
+                    </div>
+
+                    <div class="slider-row" id="row-effect-param2" style="display: none;">
+                        <div class="slider-header">
+                            <span id="label-effect-param2">Yarıçap</span>
+                            <span class="slider-val" id="val-effect-param2">5</span>
+                        </div>
+                        <input type="range" id="slider-effect-param2" min="1" max="50" value="5">
+                    </div>
+
+                    <div style="display: flex; gap: 8px; margin-top: 8px;">
+                        <button class="btn-secondary" id="btn-clear-effect" style="flex: 1;" data-i18n="btn_clear">Efekti Sıfırla</button>
+                        <button class="btn-action" id="btn-commit-effect" style="flex: 1; justify-content: center;" data-i18n="btn_commit">Efekti Sabitle</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. WATERMARK TAB -->
+            <div class="tab-panel" id="tab-watermark">
+                <div class="control-group">
+                    <div class="control-title">Filigran Türü</div>
+                    <div class="btn-grid">
+                        <button class="btn-secondary active" id="btn-wm-type-text" data-i18n="group_watermark_text">Metin Filigranı</button>
+                        <button class="btn-secondary" id="btn-wm-type-logo" data-i18n="group_watermark_logo">Logo Filigranı</button>
+                    </div>
+                </div>
+
+                <!-- Text Watermark Panel -->
+                <div class="control-group" id="panel-wm-text">
+                    <div class="control-title" data-i18n="label_wm_text">Filigran Metni:</div>
+                    <input type="text" id="input-wm-text" value="Image Utility Toolbox" style="background: var(--bg-hover); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px;">
+                    
+                    <div class="slider-row" style="margin-top: 8px;">
+                        <div class="slider-header">
+                            <span data-i18n="label_font_size">Yazı Boyutu</span>
+                            <span class="slider-val" id="val-wm-fontsize">32 px</span>
+                        </div>
+                        <input type="range" id="slider-wm-fontsize" min="12" max="100" value="32">
+                    </div>
+                </div>
+
+                <!-- Logo Watermark Panel -->
+                <div class="control-group" id="panel-wm-logo" style="display: none;">
+                    <div class="control-title" data-i18n="group_watermark_logo">Logo Görseli</div>
+                    <button class="btn-secondary" id="btn-select-logo" data-i18n="btn_choose_logo">Logo Görseli Seç (PNG)...</button>
+                    <span id="label-logo-name" style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Seçilen logo yok</span>
+                    
+                    <div class="slider-row" style="margin-top: 8px;">
+                        <div class="slider-header">
+                            <span data-i18n="label_logo_scale">Logo Ölçeği</span>
+                            <span class="slider-val" id="val-wm-logoscale">25%</span>
+                        </div>
+                        <input type="range" id="slider-wm-logoscale" min="5" max="80" value="25">
+                    </div>
+                </div>
+
+                <!-- Opacity and 9 Anchor Points -->
+                <div class="control-group">
+                    <div class="slider-row">
+                        <div class="slider-header">
+                            <span data-i18n="label_opacity">Opaklık</span>
+                            <span class="slider-val" id="val-wm-opacity">80%</span>
+                        </div>
+                        <input type="range" id="slider-wm-opacity" min="10" max="100" value="80">
+                    </div>
+
+                    <div class="control-title" style="margin-top: 10px;" data-i18n="label_anchor">Konum (9 Çapa Noktası):</div>
+                    <div class="anchor-grid">
+                        <button class="anchor-btn" data-anchor="top-left"><div class="anchor-dot"></div></button>
+                        <button class="anchor-btn" data-anchor="top-center"><div class="anchor-dot"></div></button>
+                        <button class="anchor-btn" data-anchor="top-right"><div class="anchor-dot"></div></button>
+                        <button class="anchor-btn" data-anchor="center-left"><div class="anchor-dot"></div></button>
+                        <button class="anchor-btn active" data-anchor="center"><div class="anchor-dot"></div></button>
+                        <button class="anchor-btn" data-anchor="center-right"><div class="anchor-dot"></div></button>
+                        <button class="anchor-btn" data-anchor="bottom-left"><div class="anchor-dot"></div></button>
+                        <button class="anchor-btn" data-anchor="bottom-center"><div class="anchor-dot"></div></button>
+                        <button class="anchor-btn" data-anchor="bottom-right"><div class="anchor-dot"></div></button>
+                    </div>
+
+                    <button class="btn-action" id="btn-apply-wm" style="justify-content: center; padding: 10px; margin-top: 6px;">
+                        <span data-i18n="btn_apply_watermark">Filigranı Ekle</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 5. ANALYSIS TAB -->
+            <div class="tab-panel" id="tab-analysis">
+                <!-- K-Means Palette Extractor -->
+                <div class="control-group">
+                    <div class="control-title" data-i18n="group_palette">Baskın Renk Paleti (K-Means 5)</div>
+                    <button class="btn-secondary" id="btn-run-palette" data-i18n="btn_extract_palette">Renk Paletini Çıkar</button>
+                    <div class="palette-container" id="palette-chips-container">
+                        <!-- Chips will be generated dynamically -->
+                    </div>
+                </div>
+
+                <!-- EXIF Inspector & Privacy -->
+                <div class="control-group">
+                    <div class="control-title" data-i18n="group_exif">EXIF Metaverileri ve Gizlilik</div>
+                    <button class="btn-secondary" id="btn-read-exif" data-i18n="btn_inspect_exif">EXIF Bilgilerini İncele</button>
+                    <div style="display: flex; gap: 8px; margin-top: 6px;">
+                        <button class="btn-secondary" id="btn-clean-gps" style="flex: 1;" data-i18n="btn_strip_gps">GPS Temizle</button>
+                        <button class="btn-secondary" id="btn-strip-all-exif" style="flex: 1;" data-i18n="btn_strip_all">Tüm EXIF'i Sil</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. BATCH TAB -->
+            <div class="tab-panel" id="tab-batch">
+                <div class="control-group">
+                    <div class="control-title" data-i18n="group_batch">Toplu Görsel İşleme</div>
+                    <button class="btn-action" id="btn-pick-batch-photos" style="justify-content: center;">
+                        <span data-i18n="btn_select_batch">Çoklu Fotoğraf Seç...</span>
+                    </button>
+                    <span id="batch-selected-count" style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Seçilen görsel yok</span>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-title" data-i18n="batch_recipe_label">Uygulanacak İşlem:</div>
+                    <select id="select-batch-recipe" style="background: var(--bg-hover); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px;">
+                        <option value="compress_500" data-i18n="recipe_compress_500">Hedef 500 KB WebP Sıkıştırma</option>
+                        <option value="resize_1920" data-i18n="recipe_resize_1920">Max 1920px Boyutlandırma</option>
+                        <option value="strip_exif" data-i18n="recipe_strip_exif">Tüm EXIF'i Temizleme</option>
+                    </select>
+                </div>
+
+                <!-- Batch Progress & Log -->
+                <div class="control-group" id="panel-batch-progress" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600;">
+                        <span>İlerleme:</span>
+                        <span id="batch-progress-pct">0%</span>
+                    </div>
+                    <div style="height: 6px; background: var(--bg-hover); border-radius: 3px; overflow: hidden; margin: 6px 0;">
+                        <div id="batch-progress-bar" style="height: 100%; width: 0%; background: var(--primary); transition: width 0.15s;"></div>
+                    </div>
+                    <div id="batch-log-list" style="max-height: 120px; overflow-y: auto; font-size: 12px; display: flex; flex-direction: column; gap: 4px;"></div>
+                </div>
+
+                <button class="btn-action" id="btn-start-batch-run" style="justify-content: center; padding: 12px;">
+                    <span data-i18n="btn_start_batch">Toplu İşlemi Başlat</span>
+                </button>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- STATUS BAR -->
+    <footer class="status-bar">
+        <div style="display: flex; gap: 12px;">
+            <span id="status-dims">0 × 0 px</span>
+            <span id="status-size">0 KB</span>
+            <span id="status-format">NONE</span>
+        </div>
+        <div>
+            <span id="status-zoom">100%</span>
+        </div>
+    </footer>
+
+    <!-- MAIN MENU MODAL -->
+    <div class="modal-overlay" id="modal-menu">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 data-i18n="app_title">Image Utility Toolbox</h3>
+                <button class="btn-icon" id="btn-close-modal">✕</button>
+            </div>
+            <div class="modal-body">
+                <button class="btn-secondary" id="m-act-open" style="text-align: left; padding: 12px;" data-i18n="action_open">📂 Görsel Aç...</button>
+                <button class="btn-secondary" id="m-act-save" style="text-align: left; padding: 12px;" data-i18n="action_save_as">💾 Galeriye Kaydet</button>
+                <button class="btn-secondary" id="m-act-share" style="text-align: left; padding: 12px;" data-i18n="action_share">📤 Paylaş</button>
+                <button class="btn-secondary" id="m-act-reset" style="text-align: left; padding: 12px;" data-i18n="action_reset">↺ Orijinale Sıfırla</button>
+                <hr style="border: 0; border-top: 1px solid var(--border-color);">
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-secondary" id="btn-lang-tr" style="flex: 1;">Türkçe</button>
+                    <button class="btn-secondary" id="btn-lang-en" style="flex: 1;">English</button>
+                </div>
+                <hr style="border: 0; border-top: 1px solid var(--border-color);">
+                <button class="btn-secondary" id="m-act-shortcuts" style="text-align: left; padding: 10px;" data-i18n="action_shortcuts">⌨ Kısayollar</button>
+                <button class="btn-secondary" id="m-act-about" style="text-align: left; padding: 10px;" data-i18n="action_about">ℹ Hakkında</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GENERIC INFO MODAL (About & Shortcuts & EXIF) -->
+    <div class="modal-overlay" id="modal-info">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="info-modal-title">Başlık</h3>
+                <button class="btn-icon" id="btn-close-info">✕</button>
+            </div>
+            <div class="modal-body" id="info-modal-body">
+                <!-- Content injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="js/i18n.js"></script>
+    <script src="js/engine.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
