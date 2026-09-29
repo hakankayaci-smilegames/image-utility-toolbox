@@ -18,7 +18,7 @@ from image_toolbox.services.batch_runner import BatchProcessingRunner, BatchItem
 # 22 operasyonu deftere yükle
 import image_toolbox.operations
 
-__version__ = "0.1.0"
+__version__ = "1.0.0"
 
 __all__ = [
     "ImageContext",
