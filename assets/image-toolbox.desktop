@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Image Utility Toolbox
+GenericName=Image Processing Studio
+Comment=Modular, High-Performance Image Processing Engine and Desktop Studio
+Exec=AppRun %F
+Icon=image-toolbox
+Terminal=false
+Type=Application
+Categories=Graphics;Photography;2DGraphics;RasterGraphics;
+MimeType=image/png;image/jpeg;image/webp;image/bmp;image/tiff;
+StartupNotify=true

@@ -112,6 +112,20 @@ Servis odaklı mimarisi sayesinde çekirdek motor; CLI, Python API ve PyQt6 masa
   - `android/app/build/outputs/apk/debug/app-debug.apk` (5.6 MB bağımsız imzalı APK paketi)
   - `dist/ImageUtilityToolbox-debug.apk` (doğrudan dağıtım ve test kopyası)
 
+### 2.7 CI/CD ve Çok Platformlu Dağıtım Katmanı (`.github/workflows/`)
+- **CI Test Suite (`ci.yml`):**
+  - Her `push` ve `pull_request` anında Ubuntu, Windows ve macOS üzerinde Python 3.11 & 3.12 matrix testleri.
+  - Headless offscreen (`QT_QPA_PLATFORM=offscreen`) ile 57 birim/GUI testinin otomatik doğrulanması.
+  - Ubuntu üzerinde Android Gradle debug derleme (`./gradlew assembleDebug`) testi.
+- **Çok Platformlu Sürüm Dağıtımı (`release.yml`):**
+  - Sürüm etiketleri (`v*` tag push) veya GitHub Actions sekmesinden tek tıkla manuel tetikleme (`workflow_dispatch`).
+  - `launcher.py` ve `assets/` (ikon, .desktop, AppRun) altyapısı kullanılarak:
+    1. **Linux (AppImage & .tar.gz):** PyInstaller derlemesi + `appimagetool` ile her dağıtımda çift tıklamayla çalışan `ImageToolbox-Linux-x86_64.AppImage` ve taşınabilir `.tar.gz`.
+    2. **Windows (.zip):** PyInstaller `--onedir --windowed` ve native `assets/icon.ico` ile paketlenmiş `ImageToolbox-Windows-x64.zip`.
+    3. **macOS (.zip):** PyInstaller ile oluşturulmuş `ImageToolbox.app` paketini içeren `ImageToolbox-macOS.zip`.
+    4. **Android APK:** Gradle ile derlenmiş `ImageUtilityToolbox-debug.apk`.
+- **GitHub Release Entegrasyonu:** `softprops/action-gh-release@v2` ile 4 platformun çıktıları derlenip otomatik sürüm notlarıyla birlikte Release olarak yayınlanır.
+
 ## 3. Test ve Doğrulama Stratejisi
 - `pytest` ile 100% bağımsız sentetik veri testleri.
 - `test_context.py`: Bellek sızıntısı ve kopyalama maliyeti testleri.

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+SELF=$(readlink -f "$0")
+HERE=${SELF%/*}
+export PATH="${HERE}/usr/bin:${PATH}"
+export LD_LIBRARY_PATH="${HERE}/usr/lib:${HERE}/usr/bin:${LD_LIBRARY_PATH}"
+export QT_PLUGIN_PATH="${HERE}/usr/bin/PyQt6/Qt6/plugins:${QT_PLUGIN_PATH}"
+export QML2_IMPORT_PATH="${HERE}/usr/bin/PyQt6/Qt6/qml:${QML2_IMPORT_PATH}"
+if [ -f "${HERE}/usr/bin/ImageToolbox" ]; then
+    exec "${HERE}/usr/bin/ImageToolbox" "$@"
+else
+    exec "${HERE}/usr/bin/image-toolbox" "$@"
+fi

@@ -52,11 +52,21 @@
 ## 🏛️ Mimari Katmanlar / Architectural Pillars
 
 ### 1. Masaüstü Stüdyosu (PyQt6 GUI)
+
+<p align="center">
+  <img src="docs/images/gui_studio_main.png" alt="Masaüstü Stüdyo Arayüzü" width="100%" />
+</p>
+
 * **Photoshop Tarzı Kanvas Gezinimi:** Orta tuş sürükleme (Middle-Click pan), `Space + Sol Tık` veya serbest sol tık pan; global koordinat tabanlı (`event.globalPosition()`) sıfır titremeli kaydırma.
 * **İmleç Odaklı Yakınlaştırma (Focal Zoom):** Fare tekerleği ile imlecin baktığı piksel noktası merkez alınarak yumuşak zoom in/out (%5 - %2000). Çift tıklama ile ekrana sığdırma (Fit to Window).
 * **Bölünmüş Karşılaştırma Modu (Split View):** Orijinal ve işlenmiş görsellerin yan yana piksel düzeyinde senkron kaydırılarak karşılaştırılması.
 * **RAM Tabanlı Geri/İleri Alma (Undo/Redo Stack):** `Ctrl+Z` / `Ctrl+Y` ile 30 adım geçmiş desteği; önizleme halindeki efektleri geri alırken sabitlenmiş önceki çalışmaları koruyan çift katmanlı izolasyon.
 * **6 Odaklanmış Sekme:** Sıkıştırma, Ayarlar, Efektler, Filigran, Analiz ve Toplu İşlem.
+
+<p align="center">
+  <img src="docs/images/gui_effects_controls.png" alt="Canlı Efekt Parametre Kontrolleri" width="49%" />
+  <img src="docs/images/gui_canvas_navigation.png" alt="Photoshop Tarzı Kanvas Gezinimi ve Zoom" width="49%" />
+</p>
 
 ### 2. Mobil Stüdyo (Android Native & Canvas)
 * **Android 14 (SDK 34) & Kotlin Entegrasyonu:** `MainActivity.kt` ve `WebAppInterface.kt` üzerinden MediaStore (`Pictures/ImageToolbox`), FileProvider dosya paylaşımı ve SAF (Storage Access Framework) fotoğraf seçicileri.
